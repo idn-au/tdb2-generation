@@ -6,8 +6,6 @@ image: atlassian/default-image:2
 pipelines:
   branches:
     master:
-      - variables:
-          - name: VERSION
       - step:
           name: Build and push image to ECR
           caches:
@@ -15,6 +13,8 @@ pipelines:
           services:
             - docker
           script:
+            # get the version
+            - declare -x VERSION=$(cat version.txt)
             # build the image
             - docker build -t tdb-generation:$VERSION --build-arg $VERSION .
             # push image to AWS ECR
