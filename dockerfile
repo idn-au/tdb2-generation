@@ -1,13 +1,13 @@
 FROM stain/jena:latest
 COPY --from=ghcr.io/zazuko/spatial-indexer:latest /app/spatialindexer.jar /spatialindexer.jar
-RUN apt-get update -y
-RUN apt-get install -y unzip
-RUN apt-get install -y sudo
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-RUN unzip awscliv2.zip
-RUN sudo ./aws/install
+RUN apt-get update -y  \
+    && apt-get install -y unzip \
+    && apt-get install -y sudo \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && sudo ./aws/install
 # TODO setup additional file extension matching see exampe in https://github.com/stain/jena-docker/blob/master/jena-fuseki/load.sh
-# or use e.g. `export {*.ttl,*.ttl.gz,*.nt,*}
+# or use e.g. `export FILES={*.ttl,*.ttl.gz,*.nt,*}
 CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # Download the files from S3 - requires permission \
