@@ -16,7 +16,7 @@ pipelines:
             # get the version
             - declare -x VERSION=$(cat version.txt)
             # build the image
-            - docker build -t tdb-generation:$VERSION --build-arg $VERSION .
+            - docker build -t tdb-generation .
             # push image to AWS ECR
             - pipe: atlassian/aws-ecr-push-image:1.5.0
               variables:
@@ -24,3 +24,4 @@ pipelines:
                 AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
                 AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
                 IMAGE_NAME: tdb-generation:$VERSION
+                TAGS: $VERSION
