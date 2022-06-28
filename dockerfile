@@ -13,25 +13,21 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         for dir in ${S3_DIRECTORY};\
         do\
             var=\" --include \";\
-            s3_include=$s3_include$var$dir/$dir.nq;\
+            s3_include=$s3_include$var$dir/*.nq;\
         done;\
         # \
         # Download the files from S3 - requires permission \
         # \
-            aws s3 sync s3://${S3_BUCKET}/ ./ --exclude \"*\" $s3_include;\
-            echo 'Downloaded files listing:'; ls -lah ${S3_DIRECTORY};\
-        # \
-        # move all collected files into one dir \
-        # \
-        mkdir output;\
-        for dir in ${S3_DIRECTORY};\
-        do\
-            mv $dir/$dir.nq output/$dir.nq;\
-        done;\
+            aws s3 sync s3://${S3_BUCKET}/ ./data --exclude \"*\" $s3_include;\
+            echo 'Downloaded files listing:';\
+            for dir in ${S3_DIRECTORY};\
+            do\
+                ls -lah ./data/$dir;\
+            done;\
         # \
         # Validate the files \
         # \
-            for file in output/*.nq;\
+            for file in ./data/**/*.nq;\
             do\
                     echo Validating $file;\
                     if ! riot --validate --quiet $file;\
@@ -42,11 +38,8 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # Create a TDB2 dataset \
         # \
-            cd output;\
-            tdb2.tdbloader --loc /fuseki/databases/db *.nq;\
+            tdb2.tdbloader --loc /fuseki/databases/db ./data/**/*.nq;\
             chmod 755 -R /fuseki/databases/db;\
-            ###################### \
-            # Create a TDB2 dataset \
         # \
         # Create a spatial index \
         # \
