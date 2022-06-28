@@ -9,15 +9,29 @@ RUN apt-get update -y  \
 # TODO setup additional file extension matching see exampe in https://github.com/stain/jena-docker/blob/master/jena-fuseki/load.sh
 # or use e.g. `export FILES={*.ttl,*.ttl.gz,*.nt,*}
 CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
+        s3_include=\"\";\
+        for dir in ${S3_DIRECTORY};\
+        do\
+            var=\" --include \";\
+            s3_include=$s3_include$var$dir/$dir.nq;\
+        done;\
         # \
         # Download the files from S3 - requires permission \
         # \
-            aws s3 sync s3://${S3_BUCKET}/ ./ --exclude \"*\" --include \"${S3_DIRECTORY}*\";\
+            aws s3 sync s3://${S3_BUCKET}/ ./ --exclude \"*\" $s3_include;\
             echo 'Downloaded files listing:'; ls -lah ${S3_DIRECTORY};\
+        # \
+        # move all collected files into one dir \
+        # \
+        mkdir output;\
+        for dir in ${S3_DIRECTORY};\
+        do\
+            mv $dir/$dir.nq output/$dir.nq;\
+        done;\
         # \
         # Validate the files \
         # \
-            for file in ${S3_DIRECTORY}/*.nq;\
+            for file in output/*.nq;\
             do\
                     echo Validating $file;\
                     if ! riot --validate --quiet $file;\
@@ -28,7 +42,8 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # Create a TDB2 dataset \
         # \
-            tdb2.tdbloader --loc /fuseki/databases/db ${S3_DIRECTORY}/*.nq;\
+            cd output;\
+            tdb2.tdbloader --loc /fuseki/databases/db *.nq;\
             chmod 755 -R /fuseki/databases/db;\
             ###################### \
             # Create a TDB2 dataset \
