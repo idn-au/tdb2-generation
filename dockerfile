@@ -14,7 +14,7 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         do\
             var=\" --include \";\
             s3_include=$s3_include$var$dir/*.nq;\
-            echo "s3 include is";\
+            echo 's3 include is';\
             echo $s3_include;\
         done;\
 
