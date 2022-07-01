@@ -15,6 +15,7 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
             var=\" --include \";\
             s3_include=$s3_include$var$dir/*.nq;\
         done;\
+        echo $s3_include
         # \
         # Download the files from S3 - requires permission \
         # \
