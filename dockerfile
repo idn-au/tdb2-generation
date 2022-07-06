@@ -23,12 +23,12 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # Download the files from S3 - requires permission \
         # \
-#             aws s3 sync s3://${S3_BUCKET}/ ./data --exclude \"*\" $s3_include;\
-#             echo 'Downloaded files listing:';\
-#             for dir in ${S3_DIRECTORY};\
-#             do\
-#                 ls -lah ./data/$dir;\
-#             done;\
+            aws s3 sync s3://${S3_BUCKET}/ ./data --exclude \"*\" $s3_include;\
+            echo 'Downloaded files listing:';\
+            for dir in ${S3_DIRECTORY};\
+            do\
+                ls -lah ./data/$dir;\
+            done;\
         # \
         # Validate the files \
         # \
