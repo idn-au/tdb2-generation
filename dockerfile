@@ -7,7 +7,6 @@ RUN apt-get update -y  \
     && unzip awscliv2.zip \
     && sudo ./aws/install \
     && mkdir -p ./data/power_stations
-COPY ./update_query ./update_query
 # TODO setup additional file extension matching see exampe in https://github.com/stain/jena-docker/blob/master/jena-fuseki/load.sh
 # or use e.g. `export FILES={*.ttl,*.ttl.gz,*.nt,*}
 CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
@@ -43,7 +42,7 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # Create a TDB2 dataset \
         # \
-            tdb2.tdbloader --loc /fuseki/databases/db ./data/**/*.nq;\
+            tdb2.tdbloader --loc /fuseki/databases/db --loader parallel ./data/**/*.nq;\
             chmod 755 -R /fuseki/databases/db;\
         # \
         # Create a spatial index \
