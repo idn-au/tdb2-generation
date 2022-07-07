@@ -42,7 +42,7 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # Create a TDB2 dataset \
         # \
-            tdb2.tdbloader --loc /fuseki/databases/db --loader parallel ./data/**/*.nq;\
+            tdb2.tdbloader --loc /fuseki/databases/db ./data/**/*.nq;\
             chmod 755 -R /fuseki/databases/db;\
         # \
         # Create a spatial index \
