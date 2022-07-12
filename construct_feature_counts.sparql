@@ -1,0 +1,18 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prez: <https://surroundaustralia.com/prez/>
+
+INSERT { GRAPH prez:metadata { ?fc prez:count ?count . } }
+WHERE
+{SELECT (count(?f) as ?count) ?fc
+    WHERE{
+        { GRAPH ?g
+            {
+            ?f ^rdfs:member ?fc ;
+                a geo:Feature }
+        }
+    } GROUP BY ?fc
+}

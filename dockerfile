@@ -8,41 +8,96 @@ RUN apt-get update -y  \
     && sudo ./aws/install
 # TODO setup additional file extension matching see exampe in https://github.com/stain/jena-docker/blob/master/jena-fuseki/load.sh
 # or use e.g. `export FILES={*.ttl,*.ttl.gz,*.nt,*}
-COPY ./update_query.sparql /update_query.sparql
-CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
-        s3_include=\"\";\
-        for dir in ${S3_DIRECTORY};\
+COPY ./construct_feature_counts.sparql /construct_feature_counts.sparql
+COPY ./select_feature_counts.sparql /select_feature_counts.sparql
+CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
+        # \
+        # Create a list of file extensions \
+        # \
+        extensions=\"rdf ttl owl nt nquads nq\";\
+        PATTERNS=\"\";\
+        for e in ${extensions} ;\
         do\
-            var=\" --include \";\
-            s3_include=$s3_include$var$dir/*.nq;\
+          PATTERNS=\"${PATTERNS} *.${e} *.${e}.gz\";\
         done;\
-        echo 's3 include is';\
-        echo $s3_include;\
+        if [ $# -eq 0 ] ;\
+         then patterns=\"${PATTERNS}\";\
+        else\
+          patterns=\"$@\";\
+        fi;\
         # \
-        # Download the files from S3 - requires permission \
+        # Download the files from S3 if a bucket and directory is given (requires permission) \
         # \
-            aws s3 sync s3://${S3_BUCKET}/ ./data --exclude \"*\" $s3_include;\
+        if ! [ -z ${S3_DIRECTORY+x} ];\
+            then\
+            s3_include=\"\";\
+            for dir in ${S3_DIRECTORY};\
+            do\
+                var=\" --include \";\
+                s3_include=$s3_include$var$dir/*.nq;\
+            done;\
+            echo 's3 include is';\
+            echo $s3_include;\
+            aws s3 sync s3://${S3_BUCKET}/ /rdf --exclude \"*\" $s3_include;\
             echo 'Downloaded files listing:';\
             for dir in ${S3_DIRECTORY};\
             do\
-                ls -lah ./data/$dir;\
+                ls -lah /rdf/$dir;\
             done;\
+        fi;\
+        # \
+        # create a list of the files\
+        # \
+        files=\"\";\
+        for pattern in $patterns;\
+        do\
+          files=\"${files} $(find /rdf -type f -name \"${pattern}\")\";\
+        done;\
+        echo \"The following RDF files have been found and will be validated:\";\
+        echo ${files} | tr \" \" \"\n\";\
+        echo \"##############################\";\
         # \
         # Validate the files \
         # \
-            for file in ./data/**/*.nq;\
+            for file in $files;\
             do\
                     echo Validating $file;\
                     if ! riot --validate --quiet $file;\
-                            then echo Above error in file \"$file\" && mv -- $file ${file%.nq}.error;\
+                            then echo Above error in file \"$file\" && mv -- $file ${file}.error;\
                             else echo File       $file is valid rdf;\
                     fi;\
             done;\
         # \
+        # Recreate files list (to exclude errored files) \
+        # \
+        files=\"\";\
+        for pattern in $patterns;\
+        do\
+          files=\"${files} $(find /rdf -type f -name \"${pattern}\")\";\
+        done;\
+        echo \"##############################\";\
+        echo \"The following RDF files do NOT have issues and will be processed:\";\
+        echo ${files} | tr \" \" \"\n\";\
+        echo \"##############################\";\
+        # \
         # Create a TDB2 dataset \
         # \
-            tdb2.tdbloader --loader=parallel --loc /fuseki/databases/db ./data/**/*.nq;\
-            chmod 755 -R /fuseki/databases/db;\
+        nq_files=\"\";\
+        other_files=\"\";\
+        for file in $files;\
+        do\
+          if [[ ${file} == *.nq ]];\
+          then nq_files=\"$nq_files $file\";\
+          else other_files=\"$other_files $file\";\
+          fi;\
+        done;\
+        if [ -z ${TDB2_MODE+x} ];\
+            then TDB2_MODE=phased;\
+            else TDB2_MODE=${TDB2_MODE};\
+        fi;\
+        tdb2.tdbloader --loader=$TDB2_MODE --loc /fuseki/databases/db $nq_files ;\
+        tdb2.tdbloader --loc /fuseki/databases/db --graph https://default $other_files ;\
+        chmod 755 -R /fuseki/databases/db;\
         # \
         # Create a spatial index \
         # \
@@ -52,7 +107,10 @@ CMD  ["sh", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # add a count to the dataset\
         # \
-#        tdb2.tdbupdate --loc /fuseki/databases/db/Data-0001 --update /update_query.sparql;\
+        tdb2.tdbupdate --loc /fuseki/databases/db --update /construct_feature_counts.sparql;\
+        echo \"##############################\";\
+        echo \"Feature Collection Counts - added to \"prez:metadata\" named graph \";\
+        tdb2.tdbquery --loc /fuseki/databases/db --query /select_feature_counts.sparql;\
         # \
         # Cleanup locks \
         # \

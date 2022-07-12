@@ -4,12 +4,5 @@ prefix geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX dcat: <http://www.w3.org/ns/dcat#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX prez: <https://surroundaustralia.com/prez/>
-INSERT{GRAPH prez:metadata {?fc <prez:count> ?count .}}
-WHERE{
-  	SELECT (count(?f) as ?count)
-  		WHERE{
-			{
- 			?fc rdfs:member ?f ;
- 			    a geo:FeatureCollection .}
-			}
-		}
+
+SELECT * WHERE { GRAPH ?g { ?fc prez:count ?count } }
