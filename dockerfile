@@ -11,6 +11,7 @@ RUN apt-get update -y  \
 COPY ./construct_feature_counts.sparql /construct_feature_counts.sparql
 COPY ./select_feature_counts.sparql /select_feature_counts.sparql
 CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
+        java -XX:+PrintFlagsFinal -version | grep -Ei \"maxheapsize|maxram\";\
         # \
         # Create a list of file extensions \
         # \
@@ -59,7 +60,8 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
         # \
         # Validate the files \
         # \
-            for file in $files;\
+        if [ -z ${SKIP_VALIDATION+x} ];\
+            then for file in $files;\
             do\
                     echo Validating $file;\
                     if ! riot --validate --quiet $file;\
@@ -67,6 +69,7 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
                             else echo File       $file is valid rdf;\
                     fi;\
             done;\
+        fi;\
         # \
         # Recreate files list (to exclude errored files) \
         # \
@@ -95,7 +98,7 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
             then TDB2_MODE=phased;\
             else TDB2_MODE=${TDB2_MODE};\
         fi;\
-        tdb2.tdbloader --loader=$TDB2_MODE --loc /fuseki/databases/db $nq_files ;\
+        tdb2.tdbloader --loader=$TDB2_MODE --loc /fuseki/databases/db --verbose $nq_files ;\
         tdb2.tdbloader --loc /fuseki/databases/db --graph https://default $other_files ;\
         chmod 755 -R /fuseki/databases/db;\
         # \
