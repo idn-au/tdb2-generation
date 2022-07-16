@@ -101,26 +101,26 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
             then TDB2_MODE=phased;\
             else TDB2_MODE=${TDB2_MODE};\
         fi;\
-#        tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb --verbose $nq_files ;\
-        /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb $nq_files ;\
-        tdb2.tdbloader --loc /newdb --graph https://default $other_files ;\
-        chmod 755 -R /newdb;\
+#        tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --verbose $nq_files ;\
+        /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $nq_files ;\
+        tdb2.tdbloader --loc /newdb/db --graph https://default $other_files ;\
+        chmod 755 -R /newdb/db;\
         # \
         # Create a spatial index \
         # \
             java -jar /spatialindexer.jar \
-                   --dataset /newdb \
-                   --index /newdb/spatial.index;\
+                   --dataset /newdb/db \
+                   --index /newdb/db/spatial.index;\
         # \
         # add a count to the dataset\
         # \
-        tdb2.tdbupdate --loc /newdb --update /construct_feature_counts.sparql;\
+        tdb2.tdbupdate --loc /newdb/db --update /construct_feature_counts.sparql;\
         echo \"##############################\";\
         echo \"Feature Collection Counts - added to \"prez:metadata\" named graph \";\
-        tdb2.tdbquery --loc /newdb --query /select_feature_counts.sparql;\
+        tdb2.tdbquery --loc /newdb/db --query /select_feature_counts.sparql;\
         # \
         # Cleanup locks \
         # \
-            rm /newdb/tdb.lock;\
-            rm /newdb/Data-0001/tdb.lock;\
+            rm /newdb/db/tdb.lock;\
+            rm /newdb/db/Data-0001/tdb.lock;\
         "]
