@@ -8,9 +8,12 @@ RUN apt-get update -y  \
     && sudo ./aws/install
 # TODO setup additional file extension matching see exampe in https://github.com/stain/jena-docker/blob/master/jena-fuseki/load.sh
 # or use e.g. `export FILES={*.ttl,*.ttl.gz,*.nt,*}
+COPY "./apache-jena-4.5.0.tar.gz" "/apache-jena-4.5.0.tar.gz"
 COPY ./construct_feature_counts.sparql /construct_feature_counts.sparql
 COPY ./select_feature_counts.sparql /select_feature_counts.sparql
 CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
+        apt-get install -y jq;\
+        cd / && tar -xzf /apache-jena-4.5.0.tar.gz;\
         java -XX:+PrintFlagsFinal -version | grep -Ei \"maxheapsize|maxram\";\
         # \
         # Create a list of file extensions \
@@ -98,25 +101,26 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
             then TDB2_MODE=phased;\
             else TDB2_MODE=${TDB2_MODE};\
         fi;\
-        tdb2.tdbloader --loader=$TDB2_MODE --loc /fuseki/databases/db --verbose $nq_files ;\
-        tdb2.tdbloader --loc /fuseki/databases/db --graph https://default $other_files ;\
-        chmod 755 -R /fuseki/databases/db;\
+#        tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb --verbose $nq_files ;\
+        /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb $nq_files ;\
+        tdb2.tdbloader --loc /newdb --graph https://default $other_files ;\
+        chmod 755 -R /newdb;\
         # \
         # Create a spatial index \
         # \
             java -jar /spatialindexer.jar \
-                   --dataset /fuseki/databases/db \
-                   --index /fuseki/databases/db/spatial.index;\
+                   --dataset /newdb \
+                   --index /newdb/spatial.index;\
         # \
         # add a count to the dataset\
         # \
-        tdb2.tdbupdate --loc /fuseki/databases/db --update /construct_feature_counts.sparql;\
+        tdb2.tdbupdate --loc /newdb --update /construct_feature_counts.sparql;\
         echo \"##############################\";\
         echo \"Feature Collection Counts - added to \"prez:metadata\" named graph \";\
-        tdb2.tdbquery --loc /fuseki/databases/db --query /select_feature_counts.sparql;\
+        tdb2.tdbquery --loc /newdb --query /select_feature_counts.sparql;\
         # \
         # Cleanup locks \
         # \
-            rm /fuseki/databases/db/tdb.lock;\
-            rm /fuseki/databases/db/Data-0001/tdb.lock;\
+            rm /newdb/tdb.lock;\
+            rm /newdb/Data-0001/tdb.lock;\
         "]
