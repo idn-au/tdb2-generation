@@ -38,7 +38,7 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
             for dir in ${S3_DIRECTORY};\
             do\
                 var=\" --include \";\
-                s3_include=$s3_include$var$dir/*.nt;\
+                s3_include=$s3_include$var$dir/*.nq;\
             done;\
             echo 's3 include is';\
             echo $s3_include;\
@@ -53,6 +53,7 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
         # create a list of the files\
         # \
         files=\"\";\
+        echo $patterns;\
         for pattern in $patterns;\
         do\
           files=\"${files} $(find /rdf -type f -name \"${pattern}\")\";\
@@ -102,8 +103,9 @@ CMD  ["bash", "-c", "echo Processing ${TDB2_DATASET};\
             else TDB2_MODE=${TDB2_MODE};\
         fi;\
 #        tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --verbose $nq_files ;\
+        /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $nq_files ;\
         /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $other_files ;\
-        tdb2.tdbloader --loc /newdb/db --graph https://default $other_files ;\
+#        tdb2.tdbloader --loc /newdb/db --graph https://default $other_files ;\
         chmod 755 -R /newdb/db;\
         # \
         # Create a spatial index \
