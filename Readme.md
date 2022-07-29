@@ -6,3 +6,5 @@ It includes:
 2. Creation of TDB2 datasets using `tdb2.tdbloader` or `tdb2.xloader` (for large datasets)
 3. Creation of a Spatial Index for use with Apache Jena GeoSPARQL
 4. Addition of Feature counts (via. a tdb2.update SPARQL update) - this is specific to OGC conformant datasets which contain geo:Features, and will be made optional in future versions (though the command will run harmlessly otherwise!).
+
+An additional set of instructions is also provided for running this Dockerfile on an EC2 instance - note this has only been necessary for very large datasets.
