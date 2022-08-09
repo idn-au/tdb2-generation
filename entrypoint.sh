@@ -23,15 +23,19 @@ if ! [ -z ${S3_DIRECTORY+x} ]
     then s3_include="";
     for dir in ${S3_DIRECTORY}
     do
-        var=" --include "
-        s3_include=$s3_include$var$dir/*.nq
+          for pattern in ${patterns}
+          do
+              var=" --include "
+              s3_include=$s3_include$var$dir/$pattern
+          done
     done
-    echo 's3 include is'
+    echo 's3 include is:'
     echo $s3_include
     aws s3 sync s3://${S3_BUCKET}/ /rdf --exclude "*" $s3_include
     echo 'Downloaded files listing:'
     for dir in ${S3_DIRECTORY}
     do
+        echo files in $dir:
         ls -lah /rdf/$dir
     done
 fi
@@ -39,7 +43,6 @@ fi
 # create a list of the files\
 # \
 files=""
-echo $patterns
 for pattern in $patterns
 do
   files="${files} $(find /rdf -type f -name "${pattern}")"
