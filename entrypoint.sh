@@ -1,6 +1,4 @@
 echo Processing ${TDB2_DATASET}
-apt-get install -y jq
-cd / && tar -xzf /apache-jena-4.5.0.tar.gz
 java -XX:+PrintFlagsFinal -version | grep -Ei "maxheapsize|maxram"
 # \
 # Create a list of file extensions \
@@ -29,7 +27,7 @@ if ! [ -z ${S3_DIRECTORY+x} ]
               s3_include=$s3_include$var$dir/$pattern
           done
     done
-    echo 's3 include is:'
+    echo 's3 include expression is:'
     echo $s3_include
     aws s3 sync s3://${S3_BUCKET}/ /rdf --exclude "*" $s3_include
     echo 'Downloaded files listing:'
@@ -87,26 +85,44 @@ do
   else other_files="$other_files $file"
   fi
 done
-if [ -z ${TDB2_MODE+x} ]
-    then TDB2_MODE=phased;
-    else TDB2_MODE=${TDB2_MODE}
-fi
-if [ -z ${USE_XLOADER+x} ]
+if [ -n "${USE_XLOADER}" ]
     then
-        tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --verbose $nq_files
-        tdb2.tdbloader --loc /newdb/db --graph https://default $other_files;
+        if [ "$nq_files" != "" ]
+            then /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $nq_files
+        fi
+        if [ "$other_files" != "" ]
+            then /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $other_files
+        fi
     else
-        /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $nq_files
-        /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $other_files
+        if [ -n "${TDB2_MODE}" ]
+            then TDB2_MODE=${TDB2_MODE}
+            echo using TDB2_MODE specified via environment variable: ${TDB2_MODE}
+            else TDB2_MODE=phased;
+            echo using default TDB2_MODE: ${TDB2_MODE}
+        fi
+        if [ "$nq_files" != "" ]
+          then tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --verbose $nq_files
+        fi
+        if [ "$other_files" != "" ]
+          then tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --graph https://default $other_files;
+        fi
 fi
 
 chmod 755 -R /newdb/db
 # \
 # Create a spatial index \
 # \
-    java -jar /spatialindexer.jar \
-           --dataset /newdb/db \
-           --index /newdb/db/spatial.index
+if [ "$NO_SPATIAL" = true ]
+    then
+        echo "##############################"
+        echo Skipping spatial index creation - NO_SPATIAL environment variable is set to true
+    else
+        echo "##############################"
+        echo Generating spatial index
+        java -jar /spatialindexer.jar \
+               --dataset /newdb/db \
+               --index /newdb/db/spatial.index
+fi
 # \
 # add a count to the dataset\
 # \

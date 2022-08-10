@@ -6,8 +6,10 @@ RUN apt-get update -y  \
     && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
     && sudo ./aws/install
-COPY "./apache-jena-4.5.0.tar.gz" "/apache-jena-4.5.0.tar.gz"
+COPY ./apache-jena-4.5.0.tar.gz /apache-jena-4.5.0.tar.gz
 COPY ./entrypoint.sh /entrypoint.sh
 COPY ./construct_feature_counts.sparql /construct_feature_counts.sparql
 COPY ./select_feature_counts.sparql /select_feature_counts.sparql
+RUN apt-get install -y jq
+RUN cd / && tar -xzf /apache-jena-4.5.0.tar.gz && rm /apache-jena-4.5.0.tar.gz
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
