@@ -127,6 +127,7 @@ fi
 # add a count to the dataset\
 # \
 tdb2.tdbupdate --loc /newdb/db --update /construct_feature_counts.sparql
+tdb2.tdbupdate --loc /newdb/db --update /construct_feature_counts_triples.sparql
 echo "##############################"
 echo "Feature Collection Counts - added to "prez:metadata" named graph "
 tdb2.tdbquery --loc /newdb/db --query /select_feature_counts.sparql

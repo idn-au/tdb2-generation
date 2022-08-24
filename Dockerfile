@@ -9,6 +9,7 @@ RUN apt-get update -y  \
 COPY ./apache-jena-4.5.0.tar.gz /apache-jena-4.5.0.tar.gz
 COPY ./entrypoint.sh /entrypoint.sh
 COPY ./construct_feature_counts.sparql /construct_feature_counts.sparql
+COPY ./construct_feature_counts_triples.sparql /construct_feature_counts_triples.sparql
 COPY ./select_feature_counts.sparql /select_feature_counts.sparql
 RUN apt-get install -y jq
 RUN cd / && tar -xzf /apache-jena-4.5.0.tar.gz && rm /apache-jena-4.5.0.tar.gz
