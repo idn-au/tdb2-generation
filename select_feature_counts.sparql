@@ -5,4 +5,4 @@ PREFIX dcat: <http://www.w3.org/ns/dcat#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX prez: <https://surroundaustralia.com/prez/>
 
-SELECT * WHERE { GRAPH ?g { ?fc prez:count ?count } }
+SELECT ?fc ?count WHERE { GRAPH ?g { ?fc prez:count ?count } }
