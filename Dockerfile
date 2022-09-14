@@ -1,16 +1,15 @@
-FROM stain/jena:latest
+FROM openjdk:11-jre-slim-bullseye
 COPY --from=ghcr.io/zazuko/spatial-indexer:latest /app/spatialindexer.jar /spatialindexer.jar
-RUN apt-get update -y  \
-    && apt-get install -y unzip \
-    && apt-get install -y sudo \
+ARG JENA_VERSION=4.6.1
+RUN apt-get update -y \
+    && apt-get install sudo unzip curl -y \
     && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
-    && unzip awscliv2.zip \
-    && sudo ./aws/install
-COPY ./apache-jena-4.5.0.tar.gz /apache-jena-4.5.0.tar.gz
+    && curl "https://dlcdn.apache.org/jena/binaries/apache-jena-$JENA_VERSION.tar.gz" -o "/fuseki.tar.gz" \
+    && unzip awscliv2.zip && rm awscliv2.zip \
+    && sudo ./aws/install \
+    && apt-get install -y jq \
+    && tar -xzf fuseki.tar.gz && rm fuseki.tar.gz
 COPY ./entrypoint.sh /entrypoint.sh
-COPY ./construct_feature_counts.sparql /construct_feature_counts.sparql
-COPY ./construct_feature_counts_triples.sparql /construct_feature_counts_triples.sparql
-COPY ./select_feature_counts.sparql /select_feature_counts.sparql
-RUN apt-get install -y jq
-RUN cd / && tar -xzf /apache-jena-4.5.0.tar.gz && rm /apache-jena-4.5.0.tar.gz
+COPY *.sparql /
+WORKDIR /apache-jena-$JENA_VERSION/bin/
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]

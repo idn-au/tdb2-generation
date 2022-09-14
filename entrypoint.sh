@@ -1,4 +1,5 @@
-echo Processing ${TDB2_DATASET}
+echo Starting Processing
+mkdir /rdf
 java -XX:+PrintFlagsFinal -version | grep -Ei "maxheapsize|maxram"
 # \
 # Create a list of file extensions \
@@ -55,7 +56,7 @@ if [ -z ${SKIP_VALIDATION+x} ]
     then for file in $files
     do
             echo Validating $file
-            if ! riot --validate --quiet $file
+            if ! ./riot --validate --quiet $file
                     then echo Above error in file "$file" && mv -- $file ${file}.error;
                     else echo File       $file is valid rdf
             fi
@@ -88,10 +89,10 @@ done
 if [ -n "${USE_XLOADER}" ]
     then
         if [ "$nq_files" != "" ]
-            then /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $nq_files
+            then ./tdb2.xloader --threads $THREADS --loc /newdb/db $nq_files
         fi
         if [ "$other_files" != "" ]
-            then /apache-jena-4.5.0/bin/tdb2.xloader --threads $THREADS --loc /newdb/db $other_files
+            then ./tdb2.xloader --threads $THREADS --loc /newdb/db $other_files
         fi
     else
         if [ -n "${TDB2_MODE}" ]
@@ -101,10 +102,10 @@ if [ -n "${USE_XLOADER}" ]
             echo using default TDB2_MODE: ${TDB2_MODE}
         fi
         if [ "$nq_files" != "" ]
-          then tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --verbose $nq_files
+          then ./tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --verbose $nq_files
         fi
         if [ "$other_files" != "" ]
-          then tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --graph https://default $other_files;
+          then ./tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/db --graph https://default $other_files;
         fi
 fi
 
@@ -126,11 +127,11 @@ fi
 # \
 # add a count to the dataset\
 # \
-tdb2.tdbupdate --loc /newdb/db --update /construct_feature_counts.sparql
-tdb2.tdbupdate --loc /newdb/db --update /construct_feature_counts_triples.sparql
+./tdb2.tdbupdate --loc /newdb/db --update /construct_feature_counts.sparql
+./tdb2.tdbupdate --loc /newdb/db --update /construct_feature_counts_triples.sparql
 echo "##############################"
 echo "Feature Collection Counts - added to "prez:metadata" named graph "
-tdb2.tdbquery --loc /newdb/db --query /select_feature_counts.sparql
+./tdb2.tdbquery --loc /newdb/db --query /select_feature_counts.sparql
 # \
 # Cleanup locks \
 # \
