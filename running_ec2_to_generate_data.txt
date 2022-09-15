@@ -1,9 +1,12 @@
-0.1 create an ec2 instance with memory > than the size of the RDF you are trying to load. Recommend memory optimised instances - but haven't extensively tested different instances.
-0.2 ssh-add the pem key locally and remote in
-1. run `apt install awscli`
+0.1 create an ec2 instance with memory > than the size of the RDF you are trying to load. Recommend memory optimised instances - but haven't extensively tested different instances. Create an EFS instance *from the EC2 instance creation page*
+0.2 put the key in ~/.ssh
+0.3 run `chmod 400 mykey.pem`
+0.4 run `ssh-keygen -y -f mykey.pem > mykey.pem.pub`
+0.5 run `sudo apt update`
+1. run `sudo apt install awscli -y`
 2. run `aws configure` -> enter creds for AWS account
 3. run `aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 049648851863.dkr.ecr.ap-southeast-2.amazonaws.com`
-4. run `docker pull 049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:0.1.3`
+4. run `docker pull 049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:0.1.5`
 5. if using an nvme disk, mount it, see: https://stackoverflow.com/questions/45167717/mounting-a-nvme-disk-on-aws-ec2
 6. optional: run aws s3 sync manually to get RDF on to the EC2 instance - if you don't do this and you make a mistake in the container command, you will need to re-download all of the s3 content (RDF) that you are trying to process. If using an NVME, suggest downloading the data here and mounting it to the container.
-7. run the processing, e.g.: docker run -v /mnt/efs/fs1/:/newdb --mount type=bind,source=/data,target=/rdf -e AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY HERE> -e AWS_SECRET_ACCESS_KEY=<YOUR SECRET HERE> -e TDB2_DATASET=fsdf -e SKIP_VALIDATION=true -e THREADS=15 049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:0.1.3
+7. run the processing, e.g.: docker run -v /mnt/efs/fs1/:/newdb --mount type=bind,source=/data,target=/rdf -e AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY HERE> -e AWS_SECRET_ACCESS_KEY=<YOUR SECRET HERE> -e TDB2_DATASET=fsdf -e SKIP_VALIDATION=true -e THREADS=47 049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:0.1.5
