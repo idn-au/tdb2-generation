@@ -19,7 +19,7 @@ docker run \
    -e AWS_SECRET_ACCESS_KEY=<YOUR SECRET HERE> \
    -e S3_BUCKET=<YOUR S3 BUCKET HERE> \
    -e S3_DIRECTORY=<YOUR S3 DIRECTORY HERE> \
-   -e TDB2_DATASET=fsdf \
+   -e DATASET=fsdf \
    049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:<image_version>
 ```
 
@@ -28,7 +28,7 @@ Example command to run this image locally, using local data:
 docker run \
    -v <host_db_dir>:/newdb \
    --mount type=bind,source=<host_data_dir>,target=/rdf \
-   -e TDB2_DATASET=fsdf \
+   -e DATASET=fsdf \
    049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:<image_version>
 ```
 
@@ -41,7 +41,7 @@ docker run \
    -e AWS_SECRET_ACCESS_KEY=<YOUR SECRET HERE> \
    -e S3_BUCKET=<YOUR S3 BUCKET HERE> \
    -e S3_DIRECTORY=<YOUR S3 DIRECTORY HERE> \
-   -e TDB2_DATASET=fsdf \
+   -e DATASET=fsdf \
    -e USE_XLOADER=true \
    -e THREADS=<N_cores-1> \
    049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:<image_version>
@@ -54,6 +54,6 @@ docker run \
    -v <efs_volume>:/newdb \
    -e S3_BUCKET=<YOUR S3 BUCKET HERE> \
    -e S3_DIRECTORY=<YOUR S3 DIRECTORY HERE> \
-   -e TDB2_DATASET=fsdf \
+   -e DATASET=fsdf \
    049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:<image_version>
 ```

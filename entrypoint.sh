@@ -65,6 +65,8 @@ if [ -z ${SKIP_VALIDATION+x} ]; then
       echo File $file is valid rdf
     fi
   done
+else
+  echo "Skipping validation"
 fi
 # \
 # Recreate files list (to exclude errored files) \
@@ -74,7 +76,7 @@ for pattern in $patterns; do
   files="${files} $(find /rdf -type f -name "${pattern}")"
 done
 echo "##############################"
-echo "The following RDF files do NOT have issues and will be processed:"
+echo "The following RDF files will be processed:"
 echo ${files} | tr " " "\n"
 echo "##############################"
 # \
@@ -126,6 +128,13 @@ else
     --index /newdb/${DATASET}/spatial.index
 fi
 # \
+# Create a Lucene text index \
+# \
+#rm /newdb/${DATASET}/tdb.lock
+#rm /newdb/${DATASET}/write.lock
+#rm /newdb/${DATASET}/Data-0001/tdb.lock
+java -cp /fuseki-server.jar jena.textindexer --desc=/text-geo-config.ttl
+# \
 # add a count to the dataset\
 # \
 ./tdb2.tdbupdate --loc /newdb/${DATASET} --update /construct_feature_counts.sparql
@@ -137,4 +146,5 @@ echo "Feature Collection Counts - added to "prez:metadata" named graph "
 # Cleanup locks \
 # \
 rm /newdb/${DATASET}/tdb.lock
+rm /newdb/${DATASET}/write.lock
 rm /newdb/${DATASET}/Data-0001/tdb.lock
