@@ -20,7 +20,7 @@ docker run \
    -e S3_BUCKET=<YOUR S3 BUCKET HERE> \
    -e S3_DIRECTORY=<YOUR S3 DIRECTORY HERE> \
    -e DATASET=mydataset \
-   tdb-generation:<image_version>
+   tdb2-generation:<image_version>
 ```
 
 Example command to run this image locally, using local data:

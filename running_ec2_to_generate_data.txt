@@ -9,8 +9,8 @@
 4. run `docker pull 049648851863.dkr.ecr.ap-southeast-2.amazonaws.com/tdb-generation:0.1.5`
 5. if using an nvme disk, mount it, see: https://stackoverflow.com/questions/45167717/mounting-a-nvme-disk-on-aws-ec2
     5.1 `lsblk`
-    5.2 `file -s /dev/nvme1n1`
-    5.3 `mkfs -t xfs /dev/nvme1n1`
+    5.2 `file -s /dev/nvme0n1`
+    5.3 `mkfs -t xfs /dev/nvme0n1`
     5.4 `mkdir /data`
     5.5 `mount /dev/nvme1n1 /data`
 6. optional: run aws s3 sync manually to get RDF on to the EC2 instance - if you don't do this and you make a mistake in the container command, you will need to re-download all of the s3 content (RDF) that you are trying to process. If using an NVME, suggest downloading the data here and mounting it to the container.

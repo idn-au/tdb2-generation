@@ -1,6 +1,7 @@
 FROM openjdk:11-jre-slim-bullseye
 COPY --from=ghcr.io/zazuko/spatial-indexer:latest /app/spatialindexer.jar /spatialindexer.jar
 ARG JENA_VERSION=4.7.0
+ARG CONFIG_FILE_LOCATION
 RUN apt-get update -y \
     && apt-get install sudo unzip curl -y \
     && apt-get install -y jq \
@@ -16,7 +17,7 @@ RUN apt-get update -y \
     && rmdir apache-jena-fuseki-4.7.0
 COPY ./entrypoint.sh /entrypoint.sh
 COPY *.sparql /
-COPY ./text-geo-config.ttl /text-geo-config.ttl
+COPY ${CONFIG_FILE_LOCATION} /config.ttl
 WORKDIR /apache-jena-$JENA_VERSION/bin/
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 CMD []
