@@ -26,7 +26,7 @@ docker run \
 Example command to run this image locally, using local data:
 ```
 docker run \
-   -v <host_db_dir>:/newdb \
+   -v mydbvolume:/newdb \
    --mount type=bind,source=<host_data_dir>,target=/rdf \
    -e DATASET=mydataset \
    tdb-generation:<image_version>

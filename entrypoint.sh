@@ -1,5 +1,4 @@
 echo Starting Processing
-mkdir /rdf
 java -XX:+PrintFlagsFinal -version | grep -Ei "maxheapsize|maxram"
 # \
 # Use a dataset name if specified, else use "db"
@@ -70,9 +69,14 @@ echo "##############################"
 if [ -z ${SKIP_VALIDATION+x} ]; then
   for file in $files; do
     echo Validating $file
-    if ! ./riot --validate --quiet $file; then
-      echo Above error in file "$file" && mv -- $file ${file}.error
+
+    if ! output=$(./riot --validate --quiet $file 2>&1); then
+      # This means an error occurred since the exit code is non-zero.
+      echo "Error in file $file"
+      echo "$output"  # display the error
+      mv -- $file ${file}.error
     else
+      # No error occurred. Handle warnings or regular messages as needed.
       echo File $file is valid rdf
     fi
   done
@@ -141,18 +145,8 @@ fi
 # \
 # Create a Lucene text index \
 # \
-#rm /newdb/${DATASET}/tdb.lock
-#rm /newdb/${DATASET}/write.lock
-#rm /newdb/${DATASET}/Data-0001/tdb.lock
 java -cp /fuseki-server.jar jena.textindexer --desc=/config.ttl
-# \
-# add a count to the dataset\
-# \
-./tdb2.tdbupdate --loc /newdb/${DATASET} --update /construct_feature_counts.sparql
-./tdb2.tdbupdate --loc /newdb/${DATASET} --update /construct_feature_counts_triples.sparql
-echo "##############################"
-echo "Feature Collection Counts - added to "prez:metadata" named graph "
-./tdb2.tdbquery --loc /newdb/${DATASET} --query /select_feature_counts.sparql
+
 # \
 # Cleanup locks \
 # \
