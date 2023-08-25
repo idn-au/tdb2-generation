@@ -24,7 +24,10 @@ COPY ./entrypoint.sh /entrypoint.sh
 COPY *.sparql /
 
 # Set the working directory
-WORKDIR /apache-jena-$JENA_VERSION/bin/
+WORKDIR /
+
+# Add binaries to PATH
+ENV PATH="/apache-jena-${JENA_VERSION}/bin:${PATH}"
 
 # Set the entrypoint
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]

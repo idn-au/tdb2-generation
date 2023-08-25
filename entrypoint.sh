@@ -70,7 +70,7 @@ if [ -z ${SKIP_VALIDATION+x} ]; then
   for file in $files; do
     echo Validating $file
 
-    if ! output=$(./riot --validate --quiet $file 2>&1); then
+    if ! output=$(riot --validate --quiet $file 2>&1); then
       # This means an error occurred since the exit code is non-zero.
       echo "Error in file $file"
       echo "$output"  # display the error
@@ -108,7 +108,7 @@ for file in $files; do
 done
 if [ -n "${USE_XLOADER}" ]; then
   if [ "$nq_files" != "" ]; then
-    ./tdb2.xloader --threads $THREADS --loc /newdb/${DATASET} $nq_files
+    tdb2.xloader --threads $THREADS --loc /databases/${DATASET} $nq_files
     else
       echo Error: No files with extension .nq found - xloader can only be used with nquads files
   fi
@@ -121,14 +121,14 @@ else
     echo using default TDB2_MODE: ${TDB2_MODE}
   fi
   if [ "$nq_files" != "" ]; then
-    ./tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/${DATASET} --verbose $nq_files
+    tdb2.tdbloader --loader=$TDB2_MODE --loc /databases/${DATASET} --verbose $nq_files
   fi
   if [ "$other_files" != "" ]; then
-    ./tdb2.tdbloader --loader=$TDB2_MODE --loc /newdb/${DATASET} --graph https://default $other_files
+    tdb2.tdbloader --loader=$TDB2_MODE --loc /databases/${DATASET} --graph https://default $other_files
   fi
 fi
 
-chmod 755 -R /newdb/${DATASET}
+chmod 755 -R /databases/${DATASET}
 # \
 # Create a spatial index \
 # \
@@ -139,17 +139,10 @@ else
   echo "##############################"
   echo Generating spatial index
   java -jar /spatialindexer.jar \
-    --dataset /newdb/${DATASET} \
-    --index /newdb/${DATASET}/spatial.index
+    --dataset /databases/${DATASET} \
+    --index /databases/${DATASET}/spatial.index
 fi
 # \
 # Create a Lucene text index \
 # \
 java -cp /fuseki-server.jar jena.textindexer --desc=/config.ttl
-
-# \
-# Cleanup locks \
-# \
-rm /newdb/${DATASET}/tdb.lock
-rm /newdb/${DATASET}/write.lock
-rm /newdb/${DATASET}/Data-0001/tdb.lock
