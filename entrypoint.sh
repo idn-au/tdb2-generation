@@ -23,36 +23,6 @@ else
   patterns="$@"
 fi
 
-
-if ! [ -z ${S3_BUCKET+x} ]; then
-  # \
-# Download the files from S3 if a bucket and directory is given (requires permission) \
-# \
-  s3_include=""
-  for pattern in ${patterns}; do
-    var=" --include "
-
-  if [ -z "${S3_DIRECTORY}" ]; then
-  s3_include=$s3_include$var$pattern
-    else
-      for dir in ${S3_DIRECTORY}; do
-        s3_include=$s3_include$var$dir/$pattern
-      done
-    fi
-  done
-
-  echo 's3 include expression is:'
-  echo $s3_include
-
-  aws s3 sync s3://${S3_BUCKET}/ /rdf --exclude "*" $s3_include
-
-  echo 'Downloaded files listing:'
-  for dir in ${S3_DIRECTORY}; do
-    echo files in $dir:
-    ls -lah /rdf/$dir
-  done
-fi
-
 # \
 # create a list of the files\
 # \
@@ -145,4 +115,4 @@ fi
 # \
 # Create a Lucene text index \
 # \
-java -cp /fuseki-server.jar jena.textindexer --desc=/config.ttl
+#java -cp /fuseki-server.jar jena.textindexer --desc=/config.ttl

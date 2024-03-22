@@ -1,36 +1,43 @@
-FROM openjdk:22-slim-bullseye as base
-
-COPY --from=ghcr.io/zazuko/spatial-indexer:latest /app/spatialindexer.jar /spatialindexer.jar
+FROM eclipse-temurin:21.0.2_13-jre-alpine as base
 
 # Set environment variables
-ENV JENA_VERSION=4.9.0
+ENV JENA_VERSION=5.0.0
 
-# Update system packages, install required tools, set up AWS CLI, and fetch & unpack Jena and Jena Fuseki
-RUN apt-get update -y && \
-    apt-get install -y sudo unzip curl jq && \
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && rm awscliv2.zip && \
-    sudo ./aws/install && \
-    curl "https://dlcdn.apache.org/jena/binaries/apache-jena-$JENA_VERSION.tar.gz" -o "/jena.tar.gz" && \
-    tar -xzf jena.tar.gz && rm jena.tar.gz && \
+# Update system packages, install required tools
+RUN apk update && \
+    apk add --no-cache unzip curl
+
+# Add a user `fuseki` with no password, create a home directory for the user
+# -D option for no password, -h for home directory
+RUN adduser -D -h /home/fuseki fuseki
+
+# Fetch & unpack Jena and Jena Fuseki
+RUN curl "https://dlcdn.apache.org/jena/binaries/apache-jena-$JENA_VERSION.tar.gz" -o "/jena.tar.gz" && \
+    tar -xzf /jena.tar.gz && rm /jena.tar.gz && \
     curl "https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-$JENA_VERSION.tar.gz" -o "/fuseki.tar.gz" && \
-    tar -xzf fuseki.tar.gz apache-jena-fuseki-$JENA_VERSION/fuseki-server.jar && \
+    tar -xzf /fuseki.tar.gz apache-jena-fuseki-$JENA_VERSION/fuseki-server.jar && \
     mv apache-jena-fuseki-$JENA_VERSION/fuseki-server.jar /fuseki-server.jar && \
-    rm fuseki.tar.gz && \
-    rmdir apache-jena-fuseki-$JENA_VERSION
+    rm /fuseki.tar.gz && \
+    rm -r apache-jena-fuseki-$JENA_VERSION
 
-# Copy scripts and SPARQL queries
+# Copy the spatialindexer.jar file
+COPY --from=ghcr.io/zazuko/spatial-indexer:latest /app/spatialindexer.jar /spatialindexer.jar
+
+# Copy scripts, ensure they're owned by fuseki
 COPY ./entrypoint.sh /entrypoint.sh
-COPY *.sparql /
+RUN chown fuseki:fuseki /entrypoint.sh && chmod +x /entrypoint.sh
 
-# Set the working directory
-WORKDIR /
+# Set the working directory to the home directory of fuseki
+WORKDIR /home/fuseki
 
 # Add binaries to PATH
 ENV PATH="/apache-jena-${JENA_VERSION}/bin:${PATH}"
 
+# Switch to user `fuseki` for subsequent commands
+USER fuseki
+
 # Set the entrypoint
-ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 
 # Default CMD
 CMD []
