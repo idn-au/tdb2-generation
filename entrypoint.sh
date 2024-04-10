@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo Starting Processing
 java -XX:+PrintFlagsFinal -version | grep -Ei "maxheapsize|maxram"
 # \
@@ -21,6 +23,11 @@ if [ $# -eq 0 ]; then
   patterns="${PATTERNS}"
 else
   patterns="$@"
+fi
+
+if ! [ -z ${SWIFT_CONTAINER+x} ]; then
+    echo "Downloading files from Swift..."
+    swift download --output-dir /rdf $SWIFT_CONTAINER
 fi
 
 # \
@@ -77,8 +84,8 @@ for file in $files; do
   fi
 done
 if [ -n "${USE_XLOADER}" ]; then
-  if [ "$nq_files" != "" ]; then
-    tdb2.xloader --threads $THREADS --loc /databases/${DATASET} $nq_files
+  if [[ "$nq_files" != "" ]]; then
+    tdb2.xloader --threads $THREADS --loc /fuseki/databases/${DATASET} $nq_files
     else
       echo Error: No files with extension .nq found - xloader can only be used with nquads files
   fi
@@ -91,14 +98,14 @@ else
     echo using default TDB2_MODE: ${TDB2_MODE}
   fi
   if [ "$nq_files" != "" ]; then
-    tdb2.tdbloader --loader=$TDB2_MODE --loc /databases/${DATASET} --verbose $nq_files
+    tdb2.tdbloader --loader=$TDB2_MODE --loc /fuseki/databases/${DATASET} --verbose $nq_files
   fi
   if [ "$other_files" != "" ]; then
-    tdb2.tdbloader --loader=$TDB2_MODE --loc /databases/${DATASET} --graph https://default $other_files
+    tdb2.tdbloader --loader=$TDB2_MODE --loc /fuseki/databases/${DATASET} --graph https://default $other_files
   fi
 fi
 
-chmod 755 -R /databases/${DATASET}
+chmod 755 -R /fuseki/databases/${DATASET}
 # \
 # Create a spatial index \
 # \
@@ -109,10 +116,10 @@ else
   echo "##############################"
   echo Generating spatial index
   java -jar /spatialindexer.jar \
-    --dataset /databases/${DATASET} \
-    --index /databases/${DATASET}/spatial.index
+    --dataset /fuseki/databases/${DATASET} \
+    --index /fuseki/databases/${DATASET}/spatial.index
 fi
 # \
 # Create a Lucene text index \
 # \
-#java -cp /fuseki-server.jar jena.textindexer --desc=/config.ttl
+java -cp /fuseki-server.jar jena.textindexer --desc=/fuseki/config.ttl

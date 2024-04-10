@@ -1,20 +1,21 @@
-FROM eclipse-temurin:21.0.2_13-jre-alpine as base
+FROM openjdk:22-slim-bullseye as base
 
 # Set environment variables
-ENV JENA_VERSION=5.0.0
+ENV JENA_VERSION=4.9.0
 
-# Update system packages, install required tools
-RUN apk update && \
-    apk add --no-cache unzip curl
+# Update system packages, install required tools, set up Swift CLI
+RUN apt update && \
+    apt -y install unzip curl jq python3-pip && \
+    pip3 install python-keystoneclient python-swiftclient
 
 # Add a user `fuseki` with no password, create a home directory for the user
 # -D option for no password, -h for home directory
-RUN adduser -D -h /home/fuseki fuseki
+RUN adduser --disabled-password --gecos "" --home /home/fuseki fuseki
 
 # Fetch & unpack Jena and Jena Fuseki
-RUN curl "https://dlcdn.apache.org/jena/binaries/apache-jena-$JENA_VERSION.tar.gz" -o "/jena.tar.gz" && \
+RUN curl "https://archive.apache.org/dist/jena/binaries/apache-jena-$JENA_VERSION.tar.gz" -o "/jena.tar.gz" && \
     tar -xzf /jena.tar.gz && rm /jena.tar.gz && \
-    curl "https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-$JENA_VERSION.tar.gz" -o "/fuseki.tar.gz" && \
+    curl "https://archive.apache.org/dist/jena/binaries/apache-jena-fuseki-$JENA_VERSION.tar.gz" -o "/fuseki.tar.gz" && \
     tar -xzf /fuseki.tar.gz apache-jena-fuseki-$JENA_VERSION/fuseki-server.jar && \
     mv apache-jena-fuseki-$JENA_VERSION/fuseki-server.jar /fuseki-server.jar && \
     rm /fuseki.tar.gz && \
@@ -25,7 +26,8 @@ COPY --from=ghcr.io/zazuko/spatial-indexer:latest /app/spatialindexer.jar /spati
 
 # Copy scripts, ensure they're owned by fuseki
 COPY ./entrypoint.sh /entrypoint.sh
-RUN chown fuseki:fuseki /entrypoint.sh && chmod +x /entrypoint.sh
+COPY ./sparql/*.sparql /
+RUN chown fuseki /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Set the working directory to the home directory of fuseki
 WORKDIR /home/fuseki
@@ -37,7 +39,7 @@ ENV PATH="/apache-jena-${JENA_VERSION}/bin:${PATH}"
 USER fuseki
 
 # Set the entrypoint
-ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 
 # Default CMD
 CMD []
