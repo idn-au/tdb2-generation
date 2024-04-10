@@ -48,3 +48,9 @@ Thumbs.db
 *.mov
 *.wmv
 
+fuseki/
+rdf/
+*.sh
+!entrypoint.sh
+!tests/*.sh
+*-compose.yaml

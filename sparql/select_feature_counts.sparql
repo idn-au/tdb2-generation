@@ -1,3 +1,3 @@
-PREFIX prez: <https://surroundaustralia.com/prez/>
+PREFIX prez: <https://prez.dev/>
 
 SELECT ?fc ?count WHERE { GRAPH ?g { ?fc prez:count ?count } }

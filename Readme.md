@@ -1,3 +1,5 @@
+(Note: this was previously a fork of [Kurrawong/tdb2-generation](https://github.com/Kurrawong/tdb2-generation))
+
 This docker image is used to generate TDB2 datasets used by Fuseki.
 It includes:
 
@@ -5,55 +7,62 @@ It includes:
    Files that fail validation are renamed with the suffix `.error` - this prevents tdbloader attempting to load them.
 2. Creation of TDB2 datasets using `tdb2.tdbloader` or `tdb2.xloader` (for large datasets)
 3. Creation of a Spatial Index for use with Apache Jena GeoSPARQL
+3. Creation of a Text Index for use with Lucene Text Index
 4. Addition of Feature counts (via. a tdb2.update SPARQL update) - this is specific to OGC conformant datasets which contain geo:Features, and will be made optional in future versions (though the command will run harmlessly otherwise!).
 
-An additional set of instructions is also provided for running this Dockerfile on an EC2 instance - note this has only been necessary for very large datasets.
+To pull this image:
 
-Example command to build this image:
-`docker build -t tdb-generation .`
-Example command to run this image locally, using data from S3:
 ```
-docker run \
-   -v <host_db_dir>:/newdb \
-   -e AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY HERE> \
-   -e AWS_SECRET_ACCESS_KEY=<YOUR SECRET HERE> \
-   -e S3_BUCKET=<YOUR S3 BUCKET HERE> \
-   -e S3_DIRECTORY=<YOUR S3 DIRECTORY HERE> \
-   -e DATASET=mydataset \
-   tdb2-generation:<image_version>
+docker pull ghcr.io/idn-au/tdb2-generation:latest
 ```
 
-Example command to run this image locally, using local data:
+To run this image locally, using data from OpenStack Swift:
 ```
 docker run \
-   -v mydbvolume:/newdb \
+   -v <host_db_dir>:/fuseki \
+   -e OS_AUTH_URL=<keystone_auth_url> \
+   -e OS_PROJECT_ID=<openstack_project_id> \
+   -e OS_PROJECT_NAME=<openstack_project_name> \
+   -e OS_USER_DOMAIN_NAME=<openstack_project_domain_name> \
+   -e OS_PROJECT_DOMAIN_ID=<openstack_project_domain_id> \
+   -e OS_USERNAME=<username> \
+   -e OS_PASSWORD=<password> \
+   -e OS_REGION_NAME=<region_name> \
+   -e OS_INTERFACE=<interface> \
+   -e OS_IDENTITY_API_VERSION=<keystone_version> \
+   -e SWIFT_CONTAINER=<swift_container_name> \
+   -e DATASET=<dataset_name> \
+   ghcr.io/idn-au/tdb2-generation:latest
+```
+or use an `.env` file or OpenStack `clouds.yaml` file or some other way to set OpenStack Swift CLI config variables.
+
+To run this image locally using local data:
+```
+docker run \
+   -v mydbvolume:/fuseki \
    --mount type=bind,source=<host_data_dir>,target=/rdf \
-   -e DATASET=mydataset \
-   tdb-generation:<image_version>
+   -e DATASET=<dataset_name> \
+   ghcr.io/idn-au/tdb2-generation:latest
 ```
 
 To process a large (say, >30GB) dataset, use tdb2.xloader. For example:
 
 ```
 docker run \
-   -v <host_db_dir>:/newdb \
-   -e AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY HERE> \
-   -e AWS_SECRET_ACCESS_KEY=<YOUR SECRET HERE> \
-   -e S3_BUCKET=<YOUR S3 BUCKET HERE> \
-   -e S3_DIRECTORY=<YOUR S3 DIRECTORY HERE> \
-   -e DATASET=mydataset \
+   -v <host_db_dir>:/fuseki \
+   -e OS_AUTH_URL=<keystone_auth_url> \
+   -e OS_PROJECT_ID=<openstack_project_id> \
+   -e OS_PROJECT_NAME=<openstack_project_name> \
+   -e OS_USER_DOMAIN_NAME=<openstack_project_domain_name> \
+   -e OS_PROJECT_DOMAIN_ID=<openstack_project_domain_id> \
+   -e OS_USERNAME=<username> \
+   -e OS_PASSWORD=<password> \
+   -e OS_REGION_NAME=<region_name> \
+   -e OS_INTERFACE=<interface> \
+   -e OS_IDENTITY_API_VERSION=<keystone_version> \
+   -e SWIFT_CONTAINER=<swift_container_name> \
+   -e DATASET=<dataset_name> \
    -e USE_XLOADER=true \
    -e THREADS=<N_cores-1> \
-   tdb-generation:<image_version>
-```
-
-_NB when run using the ECS task definitions supplied for both the PID and DA projects_ the AWS credentials do not need to be supplied - the relevant policy has been specified in terraform to give ECS access to read/write from the relevant S3 buckets. The mount will utilise an EFS volume specified in Terraform. The command that is run in ECS will be along the lines of:
-
-```
-docker run \
-   -v <efs_volume>:/newdb \
-   -e S3_BUCKET=<YOUR S3 BUCKET HERE> \
-   -e S3_DIRECTORY=<YOUR S3 DIRECTORY HERE> \
-   -e DATASET=mydataset \
-   tdb-generation:<image_version>
+   ghcr.io/idn-au/tdb2-generation:latest
 ```

@@ -1,6 +1,6 @@
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 prefix geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX prez: <https://surroundaustralia.com/prez/>
+PREFIX prez: <https://prez.dev/>
 
 INSERT { GRAPH prez:metadata { ?fc prez:count ?count . } }
 WHERE
