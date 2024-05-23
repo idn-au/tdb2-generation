@@ -25,10 +25,10 @@ else
   patterns="$@"
 fi
 
-# if ! [ -z ${SWIFT_CONTAINER+x} ]; then
-#     echo "Downloading files from Swift..."
-#     swift download --output-dir /rdf $SWIFT_CONTAINER
-# fi
+if ! [ -z ${SWIFT_CONTAINER+x} ]; then
+    echo "Downloading files from Swift..."
+    swift download --output-dir /rdf $SWIFT_CONTAINER
+fi
 
 # \
 # create a list of the files\
